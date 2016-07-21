@@ -1,0 +1,33 @@
+table {
+color:#fff;
+font-family:Helvetica,Arial,sans-serif;
+border-collapse: collapse;
+padding:0 3px;
+border-radius: 5px;
+margin: 25px auto;
+}
+
+td, th {
+height:30px;
+transition:all 1.5s;
+text-align:center;
+padding: 5px 40px;
+border: 2px solid #000;
+width: 100px;
+}
+
+th {
+background:#000;
+font-weight:700;
+}
+
+tr td {
+background:#fff;
+color:#000;
+}
+
+tr td:hover {
+background:#666;
+color:#FFF;
+font-weight:bold;
+}

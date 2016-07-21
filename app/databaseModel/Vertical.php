@@ -34,7 +34,9 @@ class Vertical
 
 		}
 		$query = "update Ticket set $modify_string where Id = $ticket_id";
-		mysqli_query($connection, $query);
+		$result =  mysqli_query($connection, $query);
+		$result =  mysqli_query($connection, $query);
+		return mysqli_fetch_all($result, MYSQLI_ASSOC);
 
 	}
 
@@ -44,7 +46,8 @@ class Vertical
 		$query = "insert into Task (TicketId,UserId) values ($ticket_id,$user_id) on duplicate key
 		          update UserId = $user_id";
 		          echo $query;
-		mysqli_query($connection,$query);
+		$result =  mysqli_query($connection, $query);
+		return mysqli_fetch_all($result, MYSQLI_ASSOC);
 	}
 
 	public function assignReporterToTicket($ticket_id,$reporter_id)
@@ -52,7 +55,8 @@ class Vertical
 		$connection = DBConnection::getInstance()->getConnection();
 		$query = "insert into Task (TicketId,ReporterId) values ($ticket_id,$reporter_id) on duplicate key
 		          update ReporterId = $reporter_id";
-		mysqli_query($connection,$query);
+		$result =  mysqli_query($connection, $query);
+		return mysqli_fetch_all($result, MYSQLI_ASSOC);
 
 	}
 
@@ -60,7 +64,8 @@ class Vertical
 	{
 		$connection = DBConnection::getInstance()->getConnection();
 		$c_query = "insert into Comment (Comment,UserId,TicketId) values ('$comment',$user_id,$ticket_id)";
-		mysqli_query($connection,$c_query);
+		$result =  mysqli_query($connection, $query);
+		return mysqli_fetch_all($result, MYSQLI_ASSOC);
 
 	}
 
@@ -68,38 +73,47 @@ class Vertical
 	{
 		$connection = DBConnection::getInstance()->getConnection();
 		$query = "select c.Comment,u.Name from Comment c,User u where c.UserId = $user_id and u.Id = $user_id ";
-		$query .= " limit $page*10 , ($page+1)*10"
-		mysqli_query($connection,$query);
+		$query .= " limit $page*10 , ($page+1)*10" ;
+		$result =  mysqli_query($connection, $query);
+		return mysqli_fetch_all($result, MYSQLI_ASSOC);
 	}
 
 	public function fetch_filtered_tickets($filter_array)
 	{
 		$connection = DBConnection::getInstance()->getConnection();
 
+		$usr_query = 1;
+		$status_query= 1;
+		$r_query = 1;
+		$st_query= 1;
+		$en_query= 1;
+		$lim_q= "limit 0,10" ;
+
+
 		if(isset($filter_array['UserId']))
 		{
 			$user_id = $filter_array['UserId'] ;
-			$usr_query = "t.UserId = $user_id"
+			$usr_query = "t.UserId = $user_id";
 		}
 		if(isset($filter_array['Status']))
 		{
 			$status = $filter_array['Status'] ;
-			$status_query = "t.Status = $status"
+			$status_query = "t.Status = $status";
 		}
 		if(isset($filter_array['Resolution']))
 		{
 			$status = $filter_array['Resolution'] ;
-			$r_query = "t.Resolution = $resolution"
+			$r_query = "t.Resolution = $resolution";
 		}
 		if(isset($filter_array['StartDate']))
 		{
 			$status = $filter_array['startDate'] ;
-			$st_query = "t.StartDate = $startDate"
+			$st_query = "t.StartDate = $startDate";
 		}
 		if(isset($filter_array['EndDate']))
 		{
 			$status = $filter_array['EndDate'] ;
-			$en_query = "t.EndDate = $endDate"
+			$en_query = "t.EndDate = $endDate";
 		}
 		if(isset($filter_array['page']))
 		{
@@ -107,10 +121,11 @@ class Vertical
 			$lim_q = "limit $page*10 , ($page+1)*10";
 		}
 
-		$query = "select * from Ticket t where 1 and $usr_query and $status_query and r_query 
+		$query = "select * from Ticket t where 1 and $usr_query and $status_query and $r_query 
 					and $st_query and $en_query $lim_q" ;
 
-		mysqli_query($connection,$query);
+		$result =  mysqli_query($connection, $query);
+		return mysqli_fetch_all($result, MYSQLI_ASSOC);
 
 	}
 

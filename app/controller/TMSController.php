@@ -67,8 +67,8 @@ class TMSController
 
 	public function filter_tickets()
 	{
-		$comments = $this->vertical->fetch_filtered_tickets($_GET);
-		return $comments;
+		$tickets = $this->vertical->fetch_filtered_tickets($_GET = array());
+		return $tickets;
 	}
 
 
