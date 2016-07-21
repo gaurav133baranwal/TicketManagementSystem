@@ -16,6 +16,7 @@
 	<th>Resolution</th>
 	<th>StartDate</th>
 	<th>EndDate</th>
+	<th>action</th>
 	</tr>
 	</thead>
 	<tbody>
@@ -35,6 +36,9 @@
 	 	<td> <?= $value['Resolution']; ?></td>
 	 	<td> <?= $value['StartDate']; ?></td>
 	 	<td> <?= $value['EndDate'] ; ?></td>
+	 	<td> <a href="/TMS/app/view/editForm.php?id= <?= $value['Id'] ?>" ><input type="submit" value="Edit" /></a></td>
+
+
 	</tr> 
 
 	</tbody>

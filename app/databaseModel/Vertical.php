@@ -78,6 +78,15 @@ class Vertical
 		return mysqli_fetch_all($result, MYSQLI_ASSOC);
 	}
 
+	public function fetch_ticket_details($ticket_id)
+	{
+		$connection = DBConnection::getInstance()->getConnection();
+		$query = "select * from ticket t left join task ts on t.Id = ts.TicketId left join user u on u.Id = ts.UserId where t.Id =".$ticket_id ;
+		$result =  mysqli_query($connection, $query);
+		return mysqli_fetch_all($result, MYSQLI_ASSOC);
+
+	}
+
 	public function fetch_filtered_tickets($filter_array)
 	{
 		$connection = DBConnection::getInstance()->getConnection();

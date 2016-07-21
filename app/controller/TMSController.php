@@ -28,6 +28,8 @@ class TMSController
 	public function updateTicket()
 	{
 		//$ticket = new Ticket($_POST);
+		echo 'rech';
+		echo $_POST;
 		$input = array('Title'=>'title3','Description'=>'desc3','Category'=>'cat1','Priority'=>'high',
 				'Status'=>'tested','Resolution'=>'resol1');
 
@@ -68,6 +70,12 @@ class TMSController
 	public function filter_tickets()
 	{
 		$tickets = $this->vertical->fetch_filtered_tickets($_GET = array());
+		return $tickets;
+	}
+
+	public function fetch_ticket_details($ticket_id)
+	{
+		$tickets = $this->vertical->fetch_ticket_details($ticket_id);
 		return $tickets;
 	}
 
