@@ -45,7 +45,6 @@ class Vertical
 		$connection = DBConnection::getInstance()->getConnection();
 		$query = "insert into Task (TicketId,UserId) values ($ticket_id,$user_id) on duplicate key
 		          update UserId = $user_id";
-		          echo $query;
 		$result =  mysqli_query($connection, $query);
 		return mysqli_fetch_all($result, MYSQLI_ASSOC);
 	}
@@ -69,7 +68,7 @@ class Vertical
 
 	}
 
-	public function fetch_comments($user_id,$page)
+	public function fetch_comments($user_id,$page=0)
 	{
 		$connection = DBConnection::getInstance()->getConnection();
 		$query = "select c.Comment,u.Name from Comment c,User u where c.UserId = $user_id and u.Id = $user_id ";
@@ -87,6 +86,24 @@ class Vertical
 
 	}
 
+	public function fetch_user_reporter_ticket($ticket_id)
+	{
+		$connection = DBConnection::getInstance()->getConnection();	
+		$query = "select UserId,ReporterId from Task where TicketId = $ticket_id";
+		$result =  mysqli_query($connection, $query);
+		$result = mysqli_fetch_all($result, MYSQLI_ASSOC);
+		return $result;
+
+	}
+
+	public function create_user($name)
+	{
+		$connection = DBConnection::getInstance()->getConnection();	
+		$query = "insert into User (Name) values ($name)";
+		mysqli_query($connection, $query);
+		return mysqli_insert_id($connection);
+	}
+
 	public function fetch_filtered_tickets($filter_array)
 	{
 		$connection = DBConnection::getInstance()->getConnection();
@@ -102,7 +119,7 @@ class Vertical
 		if(isset($filter_array['UserId']))
 		{
 			$user_id = $filter_array['UserId'] ;
-			$usr_query = "t.UserId = $user_id";
+			$usr_query = "ts.UserId = $user_id";
 		}
 		if(isset($filter_array['Status']))
 		{
@@ -130,12 +147,43 @@ class Vertical
 			$lim_q = "limit $page*10 , ($page+1)*10";
 		}
 
-		$query = "select * from Ticket t where 1 and $usr_query and $status_query and $r_query 
+		if($usr_query==1)
+		{
+			$query = "select * from Ticket t where 1 and $status_query and $r_query 
 					and $st_query and $en_query $lim_q" ;
+		}
+		else
+		{
+			$query = "select * from Ticket t inner join Task ts on t.Id = ts.TicketId where 1 and $usr_query and $status_query and $r_query 
+					and $st_query and $en_query $lim_q" ;
+		}
 
 		$result =  mysqli_query($connection, $query);
 		return mysqli_fetch_all($result, MYSQLI_ASSOC);
 
+	}
+
+	public function enter_log($parameters)
+	{
+		$connection = DBConnection::getInstance()->getConnection();
+
+		$query = "insert into ticketUpdateLog (Title,Description,Category,Priority,Status,Resolution,ReporterId) 
+				  values ('".$parameters['Title']."','".$parameters['Description']."','".$parameters['Category']."','".
+				  	$parameters['Priority']."','".$parameters['Status']."','".$parameters['Resolution']."','".$parameters['ReporterId'] ;
+
+	    mysqli_query($connection, $query);
+		
+	}
+
+	public function enter_log_user($ticket_id,$user_id,$user = true)
+	{
+		$connection = DBConnection::getInstance()->getConnection();
+		if($user)
+			$query ="insert into ticketUpdateLog (TicketId,UserId) values ($ticket_id,$user_id)";
+		else
+			$query ="insert into ticketUpdateLog (TicketId,ReporterId) values ($ticket_id,$user_id)";
+
+		mysqli_query($connection, $query);
 	}
 
 }
