@@ -1,11 +1,18 @@
 <?php
-include(__DIR__.'/DBConnection.php');
+include_once(__DIR__.'/../../base/model/BaseVertical.php');
 
-class Vertical
+class Vertical extends BaseVertical
 {
 	public function createTicket($ticket)
 	{
 		$connection = DBConnection::getInstance()->getConnection();
+
+		if(!in_array($ticket->priority,array('low','medium','high')))
+			$ticket->priority ='low';
+
+		if(!in_array($ticket->status,array('notStarted','Inprogress','Finished','Tested','Closed')))
+			$ticket->status ='notStarted';
+
 
 		$query = "insert into ticket (Title,Description,Category,Priority,Status,Resolution) 
 				  values ('$ticket->title','$ticket->description','$ticket->category','$ticket->priority',
@@ -22,7 +29,6 @@ class Vertical
 	{
 		$connection = DBConnection::getInstance()->getConnection();
 		$keys = array_keys($update_array);
-		print_r($keys);
 		$modify_string = '';
 
 		for ($i=0; $i < sizeof($keys)-1; $i++) 
@@ -35,8 +41,7 @@ class Vertical
 		}
 		$query = "update Ticket set $modify_string where Id = $ticket_id";
 		$result =  mysqli_query($connection, $query);
-		$result =  mysqli_query($connection, $query);
-		return mysqli_fetch_all($result, MYSQLI_ASSOC);
+		return $result ;
 
 	}
 
@@ -46,7 +51,7 @@ class Vertical
 		$query = "insert into Task (TicketId,UserId) values ($ticket_id,$user_id) on duplicate key
 		          update UserId = $user_id";
 		$result =  mysqli_query($connection, $query);
-		return mysqli_fetch_all($result, MYSQLI_ASSOC);
+		return $result;
 	}
 
 	public function assignReporterToTicket($ticket_id,$reporter_id)
@@ -55,7 +60,7 @@ class Vertical
 		$query = "insert into Task (TicketId,ReporterId) values ($ticket_id,$reporter_id) on duplicate key
 		          update ReporterId = $reporter_id";
 		$result =  mysqli_query($connection, $query);
-		return mysqli_fetch_all($result, MYSQLI_ASSOC);
+		return $result;
 
 	}
 
@@ -63,16 +68,26 @@ class Vertical
 	{
 		$connection = DBConnection::getInstance()->getConnection();
 		$c_query = "insert into Comment (Comment,UserId,TicketId) values ('$comment',$user_id,$ticket_id)";
-		$result =  mysqli_query($connection, $query);
-		return mysqli_fetch_all($result, MYSQLI_ASSOC);
+		$result =  mysqli_query($connection, $c_query);
+		return mysqli_insert_id($connection);
 
 	}
 
-	public function fetch_comments($user_id,$page=0)
+	public function fetch_comments($user_id=null,$ticket_id=null,$page=0)
 	{
 		$connection = DBConnection::getInstance()->getConnection();
-		$query = "select c.Comment,u.Name from Comment c,User u where c.UserId = $user_id and u.Id = $user_id ";
-		$query .= " limit $page*10 , ($page+1)*10" ;
+		$query = "select c.Comment u.Name from Comment c inner join User u on c.UserId = u.Id " ;
+		if($user_id !=null)
+		{
+			$query.="where u.Id = $user_id";
+		}
+		if($ticket_id !=null)
+		{
+			$query.="where c.TicketId = $ticket_id";
+		}
+		$start = $page*10;
+		$end = ($page+1)*10 ;
+		$query .= " limit $start ,$end" ;
 		$result =  mysqli_query($connection, $query);
 		return mysqli_fetch_all($result, MYSQLI_ASSOC);
 	}
@@ -94,14 +109,6 @@ class Vertical
 		$result = mysqli_fetch_all($result, MYSQLI_ASSOC);
 		return $result;
 
-	}
-
-	public function create_user($name)
-	{
-		$connection = DBConnection::getInstance()->getConnection();	
-		$query = "insert into User (Name) values ($name)";
-		mysqli_query($connection, $query);
-		return mysqli_insert_id($connection);
 	}
 
 	public function fetch_filtered_tickets($filter_array)
@@ -141,9 +148,9 @@ class Vertical
 			$status = $filter_array['EndDate'] ;
 			$en_query = "t.EndDate = $endDate";
 		}
-		if(isset($filter_array['page']))
+		if(isset($filter_array['Page']))
 		{
-			$page = $filter_array['page'] ;
+			$page = $filter_array['Page'] ;
 			$lim_q = "limit $page*10 , ($page+1)*10";
 		}
 
@@ -186,5 +193,61 @@ class Vertical
 		mysqli_query($connection, $query);
 	}
 
+
+	public function Ticket_log_entry($ticket_id,$ticket)
+	{
+		$connection = DBConnection::getInstance()->getConnection();
+		$entry_text = "Ticket created with Title: $ticket->title , Description: $ticket->description ,
+						Category: $ticket->category ,Priority: $ticket->priority , Status: $ticket->status 
+						and Resolution : $ticket->resolution" ;
+
+		$query = "insert into TicketLog (TicketId,LogMessage) Values ($ticket_id,'$entry_text')" ;
+		mysqli_query($connection, $query);
+	}
+
+	public function ticket_log_assign($ticket_id,$user_id,$is_user)
+	{
+		$connection = DBConnection::getInstance()->getConnection();
+		if($is_user)
+		{
+			$text = " user $userId assigned as user" ;
+		}
+		else
+		{
+			$text = " Reporter $userId assigned as reporter" ;
+		}
+		$query = "insert into TicketLog(TicketId,LogMessage) Values ($ticket_id,'$text')" ;
+		mysqli_query($connection, $query);
+	
+	}
+
+	public function ticket_log_update($ticket_id, $update_array)
+	{
+
+		$connection = DBConnection::getInstance()->getConnection();
+		$keys = array_keys($update_array);
+		$modify_string = '';
+
+		for ($i=0; $i < sizeof($keys)-1; $i++) 
+		{ 
+			if($modify_string!='')
+				$modify_string = $modify_string.','.$keys[$i] .'=\''.$update_array[$keys[$i]].'\'' ;
+			else 
+				$modify_string = $keys[$i] .'=\''.$update_array[$keys[$i]] .'\'';
+
+		}
+		$query = "Insert into TicketLog (TicketId,LogMessage) values ($ticket_id,'Ticket updated to $modify_string') ";
+		$result =  mysqli_query($connection, $query);
+		return $result ;
+	}
+
+	public function fetch_tickt_history($ticket_id)
+	{
+		$connection = DBConnection::getInstance()->getConnection();
+		$query = "select * from TicketLog where TicketId = $ticket_id";
+		$result =  mysqli_query($connection, $query);
+		return mysqli_fetch_all($result, MYSQLI_ASSOC);
+
+	}
 }
 ?>

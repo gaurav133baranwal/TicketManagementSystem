@@ -1,6 +1,7 @@
 <?php
 
 include_once(__DIR__."/../../config.php");
+
 class DBConnection
 {
     private $_connection;
@@ -21,17 +22,11 @@ class DBConnection
         $_password = DBPASSWORD;
         $_database = DBNAME;
 
-        print_r(array($_host ,$_password));
-
         $this->_connection   = mysqli_connect($_host,$_username,$_password,$_database);
 
         if(mysqli_connect_errno())
         {
           echo "Failed to connect to MySQL: " . mysqli_connect_error();
-        }
-        else
-        {
-            echo "connected to database";
         }
 
     }

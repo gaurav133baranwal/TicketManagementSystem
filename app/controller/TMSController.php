@@ -1,99 +1,113 @@
 <?php
 
-include(__DIR__.'/../databaseModel/Vertical.php');
-include(__DIR__.'/../model/Ticket.php');
+include_once(__DIR__.'/../model/Ticket.php');
+include_once(__DIR__.'/../../base/controller/LoginController.php');
 
-class TMSController
+class TMSController  extends LoginController
 {
 	public $vertical;
 
 	public function __construct()
 	{
 		$this->vertical = new Vertical();
+		session_start();
 	}
 
 	public function createTicket()
 	{
-		$user_id = $_POST['UserId'];
-		if($this->check_for_user_existence($user_id))
+		if($this->loggedin())
 		{
 			$ticket = new Ticket($_POST);
 			$ticket_id = $this->vertical->createTicket($ticket);
-			$this->vertical->assignReporterToTicket($ticket_id,$user_id);
-			//make an entry to ticketUpdateLog
-			$this->vertical->enter_log($_POST);
-			return $ticket_id;
+			$this->vertical->Ticket_log_entry($ticket_id,$ticket);
+
+			if($ticket_id)
+				echo json_encode(array("Sucess"=> true, "message"=> "ticket created"));
 		}
 		else
 		{
-			return json_encode(array("Sucess"=> false, "message"=> "UserId not present"));
+			echo json_encode(array("Sucess"=> false, "message"=> "User not loggedin."));
 		}
-		
-			// $input = array('Title'=>'title1','Description'=>'desc1','Category'=>'cat1','Priority'=>'high',
-		// 		'Status'=>'tested','Resolution'=>'resol1');
-		// $ticket = new Ticket($input);
 	}
 
 	public function updateTicket()
 	{
-		$user_id = isset($_POST['UserId'])? $_POST['UserId']:null ;
-		if($user_id==null)
-			return json_encode(array("Sucess"=> false, "message"=> "UserId not present"));
+		if($this->loggedin())
+		{
+			$ticket_id = $_POST['TicketId'];
+			$updated = $this->vertical->updateTicket($ticket_id,$_POST);
+			$this->vertical->ticket_log_update($ticket_id,$_POST);
 
-		// this user has to be either user or the reporter of this ticket to update it.
-		$ticket_id = $_POST['TicketId'];
-		$ticket_user = $this->vertical->fetch_user_reporter_ticket($ticket_id);
-		if($ticket_user == null || in_array($user_id, $ticket_user[0]))
-			$this->vertical->updateTicket($ticket_id,$_POST);
+			if($updated)
+				echo json_encode(array("Sucess"=> true, "message"=> "ticket updated"));
+		}
 		else
 		{
-			return json_encode(array("Sucess"=> false, "message"=> "UserId not present"));
+			echo json_encode(array("Sucess"=> false, "message"=> "User not loggedin."));
 		}
-
-		// $input = array('Title'=>'title3','Description'=>'desc3','Category'=>'cat1','Priority'=>'high',
-		// 		'Status'=>'tested','Resolution'=>'resol1');
 		
 	}
 
 	public function assignTicket()
 	{
-		$ticket_id = $_GET['TicketId'];
-		$user_id  = $_GET['UserId'];
-		$this->vertical->assignTicket($ticket_id,$user_id);
-		//$this->vertical->assignTicket(3,2);
+		if($this->loggedin())
+		{
+			$ticket_id = $_GET['TicketId'];
+			$user_id  = $_GET['UserId'];
+			$assigned = $this->vertical->assignTicket($ticket_id,$user_id);
+			$this->vertical->ticket_log_assign($ticket_id,$user_id,true);
+			if($assigned)
+				echo json_encode(array("Sucess"=> true, "message"=> "ticket assigned to user"));
+
+		}
+		else
+		{
+			echo json_encode(array("Sucess"=> false, "message"=> "User not loggedin."));
+		}
 	}
 
 	public function assignReporter()
 	{
-		$ticket_id = $_GET['TicketId'];
-		$reporter_id  = $_GET['ReporterId'];
-		$this->vertical->assignReporterToTicket($ticket_id,$reporter_id);
+		if($this->loggedin())
+		{
+			$ticket_id = $_GET['TicketId'];
+			$reporter_id  = $_GET['ReporterId'];
+			$assigned = $this->vertical->assignReporterToTicket($ticket_id,$reporter_id);
+			$this->vertical->ticket_log_assign($ticket_id,$user_id,false);
+			if($assigned)
+				echo json_encode(array("Sucess"=> true, "message"=> "reporter assigned to ticket "));
+		}
+		else
+		{
+			return json_encode(array("Sucess"=> false, "message"=> "User not loggedin."));
+		}
 	}
 
 	public function comment()
 	{
-		$comment = $_GET["Comment"];
-		$user_id = $_GET["UserId"];
-		$ticket_id= $_GET["TicketId"];
-		$ticket_user = $this->vertical->fetch_user_reporter_ticket($ticket_id);
-		if(in_array($user_id, $ticket_user[0]))
+		if($this->loggedin())
 		{
-			$comment_id = $this->vertical->comment($ticket_id,$user_id,$comment);
-			return $comment_id;
+			$comment = $_POST["Comment"];
+			$user_id = $_SESSION['UserId'];
+			$ticket_id= $_POST["TicketId"];
+			$comment_id = $this->vertical->comment($comment,$user_id,$ticket_id);
+			echo json_encode(array("Sucess"=> true, "message"=> "commented."));
 		}
-		else{
-			return json_encode(array("Sucess"=> false, "message"=> "UserId not authenticated to comment on this ticket"));
+		else
+		{
+			echo json_encode(array("Sucess"=> false, "message"=> "User not loggedin."));
 		}
 	}
 
 	public function fetch_comments()
 	{
-		$user_id = $_GET["UserId"];
-		$page = isset($_GET["Page"]) ? $_GET["Page"] : 0 ;
-		$comments = $this->vertical->fetch_comments($user_id,$page);
-		return $comments;
+			$user_id = $_GET['UserId'];
+			$ticket_id = $_GET['TicketId'];
+			$page = isset($_GET["Page"]) ? $_GET["Page"] : 0 ;
+			$comments = $this->vertical->fetch_comments($user_id,$page);
+			print_r($comments);
 	}
-
+		
 	public function filter_tickets()
 	{
 		$tickets = $this->vertical->fetch_filtered_tickets($_GET = array());
@@ -104,22 +118,31 @@ class TMSController
 	{
 		$ticket_id = $_GET['TicketId'];
 		$tickets = $this->vertical->fetch_ticket_details($ticket_id);
-		return $tickets;
+		print_r($tickets);
 	}
 
-	public function create_user()
+	public function loggedin()
 	{
-		$user_id = $this->vertical->create_user($_GET['Name']);
-		return $user_id;
+		if(isset($_SESSION['LoggedIn']) &&  $_SESSION['LoggedIn'])
+			return true;
+		return false;
+
 	}
 
+	public function fetch_tickt_history()
+	{
+		$ticket_id = $_GET['TicketId'];
+		$ticket_his = $this->vertical->fetch_tickt_history($ticket_id);
+		print_r($ticket_his);
 
+	}
+	// public function session_var()
+	// {
+	// 	print_r($_SESSION) ;
+	// }
 	
 }
-//  $cont = new TMSController();
-// $cont->createTicket();
-// $cont->assignTicket();
-// $cont->updateTicket();
+
 
 
 
