@@ -1,0 +1,128 @@
+The TMS folder should be placed in apache document root.
+
+functionality:
+      There is functionality of registering a user, loggin in for a user and logging out for a user.
+      Only the logged in users can create a ticket, update a ticket, assign a user/reporter to a ticket or comment on a ticket.
+      No loggin in is required for fetching a ticket, ftching comments on a ticket or filtering tickets based on different criterian.
+
+
+APIS:
+  1.> POST method  http://localhost/TMS/index.php/LoginController/registerUser
+  
+  parameters       type
+
+  Name				String
+  Password			String
+
+
+
+ 2.>  POST method    http://localhost/TMS/index.php/LoginController/login
+
+  parameters       type
+
+  Name				String
+  Password			String
+
+
+ 3.>  GET method    http://localhost/TMS/index.php/LoginController/logout
+
+
+  4.> POST method    http://localhost/TMS/index.php/TMSController/createTicket
+
+  parameters       type
+
+  Title				String
+  Description		String
+  Category			String
+  Priority			String ('low','medium','high')  if any other string is provided, defualt set at low
+  Status			String  ('notStarted','Inprogress','Finished','Tested','Closed'), defualt set at notStarted
+  Resolution 		String
+
+  All of these parameters except Title, Description , category are optional.
+
+
+
+ 5.> GET Method http://localhost/TMS/index.php/TMSController/assignTicket
+
+  parameters	type
+
+  TicketId		Integer
+  UserId		Integer
+
+
+
+  6.> GET method    http://localhost/TMS/index.php/TMSController/assignReporter
+
+  parameters       type
+
+  TicketId		   Integer
+  ReporterId	   Integer
+
+
+
+  7.> POST method    http://localhost/TMS/index.php/TMSController/comment
+
+  parameters       type
+
+  TicketId		   Integer
+  Comment	   	   String
+
+  8.> UserId of the currently loggedin user would automatically be assigned.
+
+
+  9.> GET method    http://localhost/TMS/index.php/TMSController/fetch_comments
+
+  parameters       type
+
+  TicketId		   Integer (optional)
+  UserId	   	   Integer  (optional)
+  Page			   Integer  (optional) 10 results shown in 1 page. starts from page 0
+
+
+  10.> GET method    http://localhost/TMS/index.php/TMSController/fetch_ticket_details
+
+  parameters       type
+
+  TicketId		   Integer
+
+  11.> GET method    http://localhost/TMS/index.php/TMSController/filter_tickets
+
+  parameters       type
+
+  UserId		   Integer
+  Status			String
+  Resolution		String
+  StartDate			mysql_date time
+  EndDate			mysql_date time
+  page              Integer
+
+  All are optional parameters
+
+  12.> POST method    http://localhost/TMS/index.php/TMSController/updateTicket
+
+   parameters       type
+
+   TicketId			Integer (required)
+   Title			string   (optional)
+  Description		string (optional)
+  Category			String (optional)
+  Priority			String  (optional)
+  Status			String  (optional)
+  Resolution 		String (optional)
+
+  13.> GET Method    http://localhost/TMS/index.php/TMSController/fetch_tickt_history
+
+  parameters  type
+  TicketId	   Integer
+
+
+
+
+
+
+
+
+
+
+
+  
