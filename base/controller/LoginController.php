@@ -11,6 +11,7 @@ class LoginController
 	{
 		$this->base_vertical = new BaseVertical();
 		session_start();
+		register_shutdown_function(array($this,'shutDownHandler'));
 	}
 
 	public function registerUser()
@@ -72,6 +73,22 @@ class LoginController
 		$_SESSION['Name'] = $userName ;
 		$_SESSION['LoggedIn'] = true;
 	}
+
+	public  function shutDownHandler()
+    {
+        $error      = error_get_last();
+
+        //check if it's a core/fatal error, otherwise it's a normal shutdown
+        if($error !== NULL && $error['type'] === E_ERROR) 
+        {
+            $error_msg = mysql_escape_string($error['message'].' in file '.$error['file'] .'in line '.$error['line']);
+            $this->base_vertical = new BaseVertical();
+            $this->base_vertical->entry_to_error_log_table($error_msg);
+        }
+        
+    }   
+
+
 
 	// public function session_var()
 	// {

@@ -37,6 +37,14 @@ class BaseVertical
 
 	}
 
+	public function entry_to_error_log_table($error_msg)
+	{
+		$connection = DBConnection::getInstance()->getConnection();
+		$query = "Insert into ErrorLogs (Error) Values ('$error_msg')";
+		$result = mysqli_query($connection, $query);
+
+	}
+
 
 
 }

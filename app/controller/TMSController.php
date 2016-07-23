@@ -10,6 +10,7 @@ class TMSController  extends LoginController
 	public function __construct()
 	{
 		$this->vertical = new Vertical();
+		
 		session_start();
 	}
 

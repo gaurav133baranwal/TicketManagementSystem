@@ -1,9 +1,11 @@
-The TMS folder should be placed in apache document root.
+The TMS folder should be placed in apache document root. 
+Set up your database credentials in config.php
 
 functionality:
       There is functionality of registering a user, loggin in for a user and logging out for a user.
       Only the logged in users can create a ticket, update a ticket, assign a user/reporter to a ticket or comment on a ticket.
       No loggin in is required for fetching a ticket, ftching comments on a ticket or filtering tickets based on different criterian.
+      All history of a ticket can be fetched. Also, there is an error logging system which would log reason , file and line number of any fatal_error occured while code execution into a database table. (ErrorLogs)
 
 
 APIS:
