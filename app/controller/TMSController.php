@@ -10,7 +10,7 @@ class TMSController  extends LoginController
 	public function __construct()
 	{
 		$this->vertical = new Vertical();
-		
+
 		session_start();
 	}
 
@@ -20,7 +20,7 @@ class TMSController  extends LoginController
 		{
 			$ticket = new Ticket($_POST);
 			$ticket_id = $this->vertical->createTicket($ticket);
-			$this->vertical->Ticket_log_entry($ticket_id,$ticket);
+			$this->vertical->ticket_log_entry($ticket_id,$ticket);
 
 			if($ticket_id)
 				echo json_encode(array("Sucess"=> true, "message"=> "ticket created"));
@@ -74,7 +74,7 @@ class TMSController  extends LoginController
 			$ticket_id = $_GET['TicketId'];
 			$reporter_id  = $_GET['ReporterId'];
 			$assigned = $this->vertical->assignReporterToTicket($ticket_id,$reporter_id);
-			$this->vertical->ticket_log_assign($ticket_id,$user_id,false);
+			$this->vertical->ticket_log_assign($ticket_id,$reporter_id,false);
 			if($assigned)
 				echo json_encode(array("Sucess"=> true, "message"=> "reporter assigned to ticket "));
 		}

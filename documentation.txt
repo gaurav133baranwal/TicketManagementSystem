@@ -1,5 +1,6 @@
 The TMS folder should be placed in apache document root. 
 Set up your database credentials in config.php
+The database queries to set up db is present in file db.sql
 
 functionality:
       There is functionality of registering a user, loggin in for a user and logging out for a user.

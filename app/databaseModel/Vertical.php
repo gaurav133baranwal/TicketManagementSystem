@@ -194,7 +194,7 @@ class Vertical extends BaseVertical
 	}
 
 
-	public function Ticket_log_entry($ticket_id,$ticket)
+	public function ticket_log_entry($ticket_id,$ticket)
 	{
 		$connection = DBConnection::getInstance()->getConnection();
 		$entry_text = "Ticket created with Title: $ticket->title , Description: $ticket->description ,
@@ -202,6 +202,7 @@ class Vertical extends BaseVertical
 						and Resolution : $ticket->resolution" ;
 
 		$query = "insert into TicketLog (TicketId,LogMessage) Values ($ticket_id,'$entry_text')" ;
+		print_r($query);
 		mysqli_query($connection, $query);
 	}
 
@@ -210,11 +211,11 @@ class Vertical extends BaseVertical
 		$connection = DBConnection::getInstance()->getConnection();
 		if($is_user)
 		{
-			$text = " user $userId assigned as user" ;
+			$text = " user $user_id assigned as user" ;
 		}
 		else
 		{
-			$text = " Reporter $userId assigned as reporter" ;
+			$text = " Reporter $user_id assigned as reporter" ;
 		}
 		$query = "insert into TicketLog(TicketId,LogMessage) Values ($ticket_id,'$text')" ;
 		mysqli_query($connection, $query);
